@@ -30,3 +30,34 @@ def text_template() -> list:
     garpike and stingray are also present.'''
     ]
     return TEXTS
+
+def prihlaseni() -> int:
+    """Zkontroluje prihlaseni uzivatele a zajisti vyber textu"""
+    registrovani_uzivatele = {'bob': '123', 'ann': 'pass123', 'mike': 'password123', 'liz': 'pass123'}
+    user_name = input('Username: ')
+    if user_name in registrovani_uzivatele:
+        user_password = input('password: ')
+        if registrovani_uzivatele[user_name] == user_password:
+            oddeleni_textu()
+            print(f'Welcome to the app, {user_name}\nWe have 3 texts to be analyzed.')
+            oddeleni_textu()
+            vyber_textu = input('Enter a number btw. 1 and 3 to select: ')
+            if vyber_textu.isnumeric():
+                oddeleni_textu()
+                return int(vyber_textu)-1
+            else: spatne_zadani(2)
+        else: spatne_zadani(1)
+    else: spatne_zadani(0)
+    oddeleni_textu()
+
+
+
+
+def oddeleni_textu(oddelovac = '-', delka = 45):
+    print(oddelovac * delka)
+
+def spatne_zadani(pricina: int):
+    list_pricin = ['username', 'password', 'input']
+    oddeleni_textu()
+    print(f'Wrong {list_pricin[pricina]}, quitting..')
+    exit()

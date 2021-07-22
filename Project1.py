@@ -2,7 +2,8 @@ from project1_def import *
 
 def main():
     texty = text_template()
-    print(texty[1])
+    text_vyber = prihlaseni()
+    print(texty[text_vyber])
 
 
 
