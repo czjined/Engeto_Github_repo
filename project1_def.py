@@ -65,6 +65,7 @@ def spatne_zadani(pricina: int):
 def statistika_textu(list_textu):
     slova_pocet, slova_capital, slova_lower, slova_upper = 0, 0, 0, 0
     cisla_pocet, cisla_suma = 0, 0
+    slovnik_delek = dict()
     for slovo in list_textu:
         slovo = slovo.strip('.,')
         if slovo.isalpha():
@@ -76,6 +77,7 @@ def statistika_textu(list_textu):
             cisla_pocet += 1
             cisla_suma += int(slovo)
         else: print(f'Pozor, slovo {slovo} je mix cislic a znaku!')
+        slovnik_delek = delky_slov(slovnik_delek, slovo)
     print(f'There are {slova_pocet} words in the selected text.')
     print(f'There are {slova_capital} titlecase words.')
     print(f'There are {slova_upper} uppercase words.')
@@ -83,3 +85,30 @@ def statistika_textu(list_textu):
     print(f'There are {cisla_pocet} numeric strings.')
     print(f'The sum of all the numbers {cisla_suma}')
     oddeleni_textu()
+    graf_delek(slovnik_delek)
+
+
+def delky_slov(slovnik_delek: dict, slovo: str) -> dict:
+    klic = str(len(slovo))
+    slovnik_delek[klic] = slovnik_delek.setdefault(klic, 0) + 1
+    return slovnik_delek
+
+def graf_delek(slovnik_delek: dict):
+    hlavicka = ['LEN', 'OCCURENCES', 'NR.']
+    sorted_list = list(slovnik_delek)
+    for i, d in enumerate(sorted_list): sorted_list[i] = int(d)
+    sorted_list.sort()
+    nej_delka = max(slovnik_delek)
+    nej_delka = slovnik_delek[nej_delka]
+    formatted = '|{0:>3}|{1:<{sirka}}|{2:>3}|'.format(*hlavicka, sirka = 20)
+    print(formatted)
+    oddeleni_textu()
+    for key in sorted_list:
+        key = str(key)
+        druhy = slovnik_delek[key] * '*'
+        formatted = '|{0:>3}|{1:<{sirka}}|{2:>3}|'.format(key, druhy, str(slovnik_delek[key]), sirka = 20)
+        print(formatted)
+    oddeleni_textu()
+
+
+
