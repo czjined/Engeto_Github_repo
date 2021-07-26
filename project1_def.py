@@ -61,3 +61,25 @@ def spatne_zadani(pricina: int):
     oddeleni_textu()
     print(f'Wrong {list_pricin[pricina]}, quitting..')
     exit()
+
+def statistika_textu(list_textu):
+    slova_pocet, slova_capital, slova_lower, slova_upper = 0, 0, 0, 0
+    cisla_pocet, cisla_suma = 0, 0
+    for slovo in list_textu:
+        slovo = slovo.strip('.,')
+        if slovo.isalpha():
+            slova_pocet += 1
+            if slovo.islower(): slova_lower += 1
+            if slovo.isupper(): slova_upper += 1
+            if slovo.istitle(): slova_capital += 1
+        elif slovo.isnumeric():
+            cisla_pocet += 1
+            cisla_suma += int(slovo)
+        else: print(f'Pozor, slovo {slovo} je mix cislic a znaku!')
+    print(f'There are {slova_pocet} words in the selected text.')
+    print(f'There are {slova_capital} titlecase words.')
+    print(f'There are {slova_upper} uppercase words.')
+    print(f'There are {slova_lower} lowercase words.')
+    print(f'There are {cisla_pocet} numeric strings.')
+    print(f'The sum of all the numbers {cisla_suma}')
+    oddeleni_textu()

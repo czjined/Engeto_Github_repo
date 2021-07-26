@@ -3,7 +3,8 @@ from project1_def import *
 def main():
     texty = text_template()
     text_vyber = prihlaseni()
-    print(texty[text_vyber])
+    text_list = texty[text_vyber].split()
+    statistika_textu(text_list)
 
 
 
