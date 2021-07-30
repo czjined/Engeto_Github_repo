@@ -1,3 +1,5 @@
+import string
+
 TEXTS = ['''
     Situated about 10 miles west of Kemmerer, 
     Fossil Butte is a ruggedly impressive 
@@ -43,12 +45,15 @@ def prihlaseni() -> int:
             print(f'Welcome to the app, {user_name}\nWe have 3 texts to be analyzed.')
             oddeleni_textu()
             vyber_textu = input('Enter a number btw. 1 and 3 to select: ')
-            if vyber_textu.isnumeric():
+            if vyber_textu.isnumeric() and int(vyber_textu) >= 1 and int(vyber_textu) <= 3:
                 oddeleni_textu()
                 return int(vyber_textu)-1
-            else: spatne_zadani(2)
-        else: spatne_zadani(1)
-    else: spatne_zadani(0)
+            else:
+                spatne_zadani(2)
+        else:
+            spatne_zadani(1)
+    else:
+        spatne_zadani(0)
     oddeleni_textu()
 
 def oddeleni_textu(oddelovac = '-', delka = 45):
@@ -65,16 +70,20 @@ def statistika_textu(list_textu):
     cisla_pocet, cisla_suma = 0, 0
     slovnik_delek = dict()
     for slovo in list_textu:
-        slovo = slovo.strip('.,')
-        if slovo.isalpha():
+        slovo = slovo.strip(string.punctuation)
+        if slovo.isalpha() and slovo != ' ':
             slova_pocet += 1
-            if slovo.islower(): slova_lower += 1
-            if slovo.isupper(): slova_upper += 1
-            if slovo.istitle(): slova_capital += 1
+            if slovo.islower():
+                slova_lower += 1
+            if slovo.isupper():
+                slova_upper += 1
+            if slovo.istitle():
+                slova_capital += 1
         elif slovo.isnumeric():
             cisla_pocet += 1
             cisla_suma += int(slovo)
-        else: print(f'Pozor, slovo {slovo} je mix cislic a znaku!')
+        else:
+            print(f'Pozor, slovo {slovo} je mix cislic a znaku!')
         slovnik_delek = delky_slov(slovnik_delek, slovo)
     print(f'There are {slova_pocet} words in the selected text.')
     print(f'There are {slova_capital} titlecase words.')
