@@ -45,7 +45,7 @@ def prihlaseni() -> int:
             print(f'Welcome to the app, {user_name}\nWe have 3 texts to be analyzed.')
             oddeleni_textu()
             vyber_textu = input('Enter a number btw. 1 and 3 to select: ')
-            if vyber_textu.isnumeric() and int(vyber_textu) >= 1 and int(vyber_textu) <= 3:
+            if vyber_textu.isdecimal() and int(vyber_textu) >= 1 and int(vyber_textu) <= 3:
                 oddeleni_textu()
                 return int(vyber_textu)-1
             else:
