@@ -71,7 +71,7 @@ def statistika_textu(list_textu):
     slovnik_delek = dict()
     for slovo in list_textu:
         slovo = slovo.strip(string.punctuation)
-        if slovo.isalpha() and slovo != ' ':
+        if slovo.isalnum() and slovo != ' ':
             slova_pocet += 1
             if slovo.islower():
                 slova_lower += 1
@@ -79,9 +79,9 @@ def statistika_textu(list_textu):
                 slova_upper += 1
             if slovo.istitle():
                 slova_capital += 1
-        elif slovo.isnumeric():
-            cisla_pocet += 1
-            cisla_suma += int(slovo)
+            if slovo.isdecimal():
+                cisla_pocet += 1
+                cisla_suma += int(slovo)
         else:
             print(f'Pozor, slovo {slovo} je mix cislic a znaku!')
         slovnik_delek = delky_slov(slovnik_delek, slovo)
