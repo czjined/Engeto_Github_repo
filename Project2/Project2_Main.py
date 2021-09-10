@@ -1,6 +1,7 @@
 import random
 import time
 
+
 def main():
     bulls, cows = 0, 0
     pokusy = 0
@@ -10,7 +11,7 @@ def main():
     print("Let's play a bulls and cows game.")
     oddeleni_textu()
     hidden_number = generator_cisla()
-    print(hidden_number)
+    # print(hidden_number)    ... pro testovani
     start_time = time.time()
     while cows < 4:
         bulls, cows = 0, 0
@@ -30,22 +31,24 @@ def main():
         stop_timer(start_time)
         oddeleni_textu()
 
-def oddeleni_textu(oddelovac = '-', delka = 45):
+
+def oddeleni_textu(oddelovac='-', delka=45):
     print(oddelovac * delka)
+
 
 def generator_cisla() -> list:
     rozsah = list(range(10))
-    print(rozsah)
     nahodne_cislo = list()
     for i in range(4):
         if i == 0:
-            nahodne_cislo.append(str(rozsah.pop(random.randrange(1,10))))
+            nahodne_cislo.append(str(rozsah.pop(random.randrange(1, 10))))
         else:
             index = 10 - i
             nahodne_cislo.append(str(rozsah.pop(random.randrange(index))))
     return nahodne_cislo
 
-def kontrola_vstupu(vst_list: list, vysledek_kontroly = False):
+
+def kontrola_vstupu(vst_list: list, vysledek_kontroly=False):
     if len(vst_list) != 4:
         print("Four digits expected!")
     elif not ''.join(vst_list).isdigit():
@@ -61,12 +64,14 @@ def kontrola_vstupu(vst_list: list, vysledek_kontroly = False):
     oddeleni_textu()
     return vysledek_kontroly
 
+
 def stop_timer(pocatek):
     cas = time.time() - pocatek
     sekundy = round(cas % 60)
     minuty = int(cas // 60)
     hodiny = int(minuty // 60)
     print(f"It took {hodiny} hours, {minuty} minutes and {sekundy} seconds.")
+
 
 if __name__ == "__main__":
     main()
