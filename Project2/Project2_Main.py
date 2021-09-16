@@ -11,9 +11,9 @@ def main():
     print("Let's play a bulls and cows game.")
     oddeleni_textu()
     hidden_number = generator_cisla()
-    # print(hidden_number)    ... pro testovani
+    print(hidden_number)
     start_time = time.time()
-    while cows < 4:
+    while bulls < 4:
         bulls, cows = 0, 0
         input_number = list(input('Enter a number: '))
         print(input_number)
@@ -21,11 +21,20 @@ def main():
         if kontrola_vstupu(input_number):
             for i, cislo in enumerate(input_number):
                 if cislo == hidden_number[i]:
-                    cows += 1
-                elif cislo in hidden_number:
                     bulls += 1
-            if cows < 4:
-                print(f"{bulls} bulls, {cows} cows.")
+                elif cislo in hidden_number:
+                    cows += 1
+            if bulls < 4:
+                if bulls == 1:
+                    bulls_vypis = 'bull'
+                else:
+                    bulls_vypis = 'bulls'
+                if cows == 1:
+                    cows_vypis = 'cow'
+                else:
+                    cows_vypis = 'cows'
+                print(f"{bulls} {bulls_vypis}, {cows} {cows_vypis}.")
+
     else:
         print(f"Correct, you've guessed the right number in {pokusy} guesses!")
         stop_timer(start_time)
