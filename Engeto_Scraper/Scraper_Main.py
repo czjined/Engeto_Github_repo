@@ -1,5 +1,6 @@
 import requests
 
+
 def main():
     oddeleni_textu()
 
