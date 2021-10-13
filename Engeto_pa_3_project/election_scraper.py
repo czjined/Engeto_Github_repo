@@ -27,6 +27,16 @@ def request_site(html_argument: str) -> str:
         return home_site.text
 
 
+def crt_rslt_structure() -> list:
+    result_structure = list()
+    main_row = ['region', 'district', 'city_number', 'city_name', 'registered', 'envelope', 'valid']
+    for item in main_row:
+        tmp_dict = dict()
+        tmp_dict.setdefault(item, '')
+        result_structure.append(tmp_dict)
+    return result_structure
+
+
 def script_stop(stop_text: str):
     print(stop_text)
     print('QUITTING..')
@@ -38,6 +48,9 @@ if __name__ == '__main__':
     # input_list = sys.argv()
     if input_check(input_list):
         req_site = request_site(input_list[1])
+        election_result = crt_rslt_structure()
         soup_site = BeautifulSoup(req_site, 'html.parser')
-        print(soup_site.find_all('h3'), '\n')
-
+        selected_location = soup_site.find_all('h3')[:2]
+        election_result[0].update({"region": selected_location[0].string.split()[1] + ' kraj'})
+        election_result[1].update({"district": selected_location[1].string.split()[1]})
+        print(election_result)
