@@ -37,6 +37,17 @@ def crt_rslt_structure() -> list:
     return result_structure
 
 
+def htmltable_to_dict(soup, tag: str, class_filter: str, result_dict: dict) -> dict:
+    soup_list = soup.find_all(tag, class_=class_filter)
+    key = list(result_dict.keys())[0]
+    tmp_list = list()
+    for listitem in soup_list:
+        tmp_list.append(listitem.text)
+    tmp_dict = {key: tmp_list}
+    result_dict.update(tmp_dict)
+    return result_dict
+
+
 def script_stop(stop_text: str):
     print(stop_text)
     print('QUITTING..')
@@ -53,4 +64,8 @@ if __name__ == '__main__':
         selected_location = soup_site.find_all('h3')[:2]
         election_result[0].update({"region": selected_location[0].string.split()[1] + ' kraj'})
         election_result[1].update({"district": selected_location[1].string.split()[1]})
-        print(election_result)
+        cities_number = htmltable_to_dict(soup_site, 'td', 'cislo', election_result[2])
+        election_result.insert(2, cities_number)
+        cities_names = htmltable_to_dict(soup_site, 'td', 'overflow_name', election_result[3])
+        election_result.insert(3, cities_names)
+        print(election_result[3])
