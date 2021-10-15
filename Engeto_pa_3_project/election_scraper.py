@@ -29,7 +29,7 @@ def request_site(html_argument: str) -> str:
 
 def crt_rslt_structure() -> list:
     result_structure = list()
-    main_row = ['region', 'district', 'city_number', 'city_name', 'registered', 'envelope', 'valid']
+    main_row = ['region', 'district', 'city_number', 'city_name', 'city_link', 'registered', 'envelope', 'valid']
     for item in main_row:
         tmp_dict = dict()
         tmp_dict.setdefault(item, '')
@@ -37,15 +37,14 @@ def crt_rslt_structure() -> list:
     return result_structure
 
 
-def htmltable_to_dict(soup, tag: str, class_filter: str, result_dict: dict) -> dict:
-    soup_list = soup.find_all(tag, class_=class_filter)
-    key = list(result_dict.keys())[0]
-    tmp_list = list()
-    for listitem in soup_list:
-        tmp_list.append(listitem.text)
-    tmp_dict = {key: tmp_list}
-    result_dict.update(tmp_dict)
-    return result_dict
+def htmltable_to_list(soup, class_filter: str, tag_sel='td') -> list:
+    result_list = list()
+    for row in soup.findAll(tag_sel, attrs={'class': class_filter}):
+        if class_filter == 'center':
+            result_list.append(row.a['href'])
+        else:
+            result_list.append(row.text)
+    return result_list
 
 
 def script_stop(stop_text: str):
@@ -64,8 +63,16 @@ if __name__ == '__main__':
         selected_location = soup_site.find_all('h3')[:2]
         election_result[0].update({"region": selected_location[0].string.split()[1] + ' kraj'})
         election_result[1].update({"district": selected_location[1].string.split()[1]})
-        cities_number = htmltable_to_dict(soup_site, 'td', 'cislo', election_result[2])
-        election_result.insert(2, cities_number)
-        cities_names = htmltable_to_dict(soup_site, 'td', 'overflow_name', election_result[3])
-        election_result.insert(3, cities_names)
-        print(election_result[3])
+        soup_table = soup_site.find('table', attrs={'class': 'table'})
+        cities_number = htmltable_to_list(soup_table, 'cislo')
+        election_result[2].update({"city_number": cities_number})
+        cities_names = htmltable_to_list(soup_table, 'overflow_name')
+        election_result[3].update({"city_name": cities_names})
+        cities_links = htmltable_to_list(soup_table, 'center')
+        election_result[4].update({"city_link": cities_links})
+        if len(election_result[2]) == len(election_result[3]) and len(election_result[2]) == len(election_result[4]):
+            print(election_result[2],'\n')
+            print(election_result[3], '\n')
+            print(election_result[4], '\n')
+        else:
+            print('Chyba scrappingu obci, ruzna delka listu!')
