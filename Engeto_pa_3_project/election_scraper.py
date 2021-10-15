@@ -71,7 +71,7 @@ if __name__ == '__main__':
         cities_links = htmltable_to_list(soup_table, 'center')
         election_result[4].update({"city_link": cities_links})
         if len(election_result[2]) == len(election_result[3]) and len(election_result[2]) == len(election_result[4]):
-            print(election_result[2],'\n')
+            print(election_result[2], '\n')
             print(election_result[3], '\n')
             print(election_result[4], '\n')
         else:
