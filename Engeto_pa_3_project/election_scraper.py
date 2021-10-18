@@ -37,10 +37,10 @@ def crt_rslt_structure() -> list:
     return result_structure
 
 
-def htmltable_to_list(soup, class_filter: str, tag_sel='td') -> list:
+def htmltable_to_list(soup, class_sel='', tag_sel='td', id_sel='', header_sel='', href_sel=False) -> list:
     result_list = list()
-    for row in soup.findAll(tag_sel, attrs={'class': class_filter}):
-        if class_filter == 'center':
+    for row in soup.findAll(tag_sel, attrs={'class': class_sel,'id': id_sel, 'header':header_sel}):
+        if href_sel:
             result_list.append(row.a['href'])
         else:
             result_list.append(row.text)
@@ -64,11 +64,11 @@ if __name__ == '__main__':
         election_result[0].update({"region": selected_location[0].string.split()[1] + ' kraj'})
         election_result[1].update({"district": selected_location[1].string.split()[1]})
         soup_table = soup_site.find('table', attrs={'class': 'table'})
-        cities_number = htmltable_to_list(soup_table, 'cislo')
+        cities_number = htmltable_to_list(soup_table, class_sel='cislo')
         election_result[2].update({"city_number": cities_number})
-        cities_names = htmltable_to_list(soup_table, 'overflow_name')
+        cities_names = htmltable_to_list(soup_table, class_sel='overflow_name')
         election_result[3].update({"city_name": cities_names})
-        cities_links = htmltable_to_list(soup_table, 'center')
+        cities_links = htmltable_to_list(soup_table, class_sel='cislo', href_sel=True)
         election_result[4].update({"city_link": cities_links})
         if len(election_result[2]) == len(election_result[3]) and len(election_result[2]) == len(election_result[4]):
             print(election_result[2], '\n')
@@ -76,3 +76,18 @@ if __name__ == '__main__':
             print(election_result[4], '\n')
         else:
             print('Chyba scrappingu obci, ruzna delka listu!')
+        tmp_list = list()
+        for i, odkaz in enumerate(election_result[4]['city_link']):
+            odkaz = 'https://volby.cz/pls/ps2017nss/' + odkaz
+            req_cities = request_site(odkaz)
+            soup_cities = BeautifulSoup(req_cities, 'html.parser')
+            soup_table = soup_cities.find('table', attrs={'class': 'table'})
+            # print(soup_table)
+            # cities_registered = htmltable_to_list(soup_table, class_sel='cislo', header_sel='sa2')
+            cities_registered = soup_table.find('td', attrs={'class': 'cislo', 'headers': 'sa2'})
+            try:
+                tmp_list.append(cities_registered.text)
+            except AttributeError:
+                print(f'Mesto {election_result[3]["city_name"][i]} ma problem!')
+        election_result[5].update({"registered": tmp_list})
+        print(election_result[5], '\n')
