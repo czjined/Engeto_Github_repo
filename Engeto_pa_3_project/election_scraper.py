@@ -2,6 +2,7 @@ import requests
 from requests.exceptions import HTTPError
 from bs4 import BeautifulSoup
 import sys
+# import unicodedata
 
 
 def input_check(list_for_check: list) -> bool:
@@ -37,13 +38,13 @@ def crt_rslt_structure() -> list:
     return result_structure
 
 
-def htmltable_to_list(soup, class_sel='', tag_sel='td', id_sel='', header_sel='', href_sel=False) -> list:
+def htmltable_to_list(soup, class_sel='', tag_sel='td', id_sel='', href_sel=False) -> list:
     result_list = list()
-    for row in soup.findAll(tag_sel, attrs={'class': class_sel,'id': id_sel, 'header':header_sel}):
+    for row in soup.findAll(tag_sel, attrs={'class': class_sel,'id': id_sel}):
         if href_sel:
             result_list.append(row.a['href'])
         else:
-            result_list.append(row.text)
+            result_list.append(row.text.replace(u'\xa0', u''))
     return result_list
 
 
@@ -76,18 +77,24 @@ if __name__ == '__main__':
             print(election_result[4], '\n')
         else:
             print('Chyba scrappingu obci, ruzna delka listu!')
-        tmp_list = list()
+        registered_list, envelope_list, valid_list = list(), list(), list()
         for i, odkaz in enumerate(election_result[4]['city_link']):
             odkaz = 'https://volby.cz/pls/ps2017nss/' + odkaz
             req_cities = request_site(odkaz)
             soup_cities = BeautifulSoup(req_cities, 'html.parser')
             soup_table = soup_cities.find('table', attrs={'class': 'table'})
-            # print(soup_table)
+            # print(soup_table.td.attrs)
             # cities_registered = htmltable_to_list(soup_table, class_sel='cislo', header_sel='sa2')
             cities_registered = soup_table.find('td', attrs={'class': 'cislo', 'headers': 'sa2'})
+            cities_envelope = soup_table.find('td', attrs={'class': 'cislo', 'headers': 'sa3'})
+            cities_valid = soup_table.find('td', attrs={'class': 'cislo', 'headers': 'sa6'})
             try:
-                tmp_list.append(cities_registered.text)
+                registered_list.append(cities_registered.text.replace(u'\xa0', u''))
+                envelope_list.append(cities_envelope.text.replace(u'\xa0', u''))
+                valid_list.append(cities_valid.text.replace(u'\xa0', u''))
             except AttributeError:
                 print(f'Mesto {election_result[3]["city_name"][i]} ma problem!')
-        election_result[5].update({"registered": tmp_list})
-        print(election_result[5], '\n')
+        election_result[5].update({"registered": registered_list})
+        election_result[6].update({"envelope": envelope_list})
+        election_result[7].update({"valid": valid_list})
+        print(election_result[7], '\n')
