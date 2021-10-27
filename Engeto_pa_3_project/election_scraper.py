@@ -78,23 +78,43 @@ if __name__ == '__main__':
         else:
             print('Chyba scrappingu obci, ruzna delka listu!')
         registered_list, envelope_list, valid_list = list(), list(), list()
+        strany, strany_list = list(), list()
+        hlasy, hlasy_list = list(), list()
         for i, odkaz in enumerate(election_result[4]['city_link']):
             odkaz = 'https://volby.cz/pls/ps2017nss/' + odkaz
             req_cities = request_site(odkaz)
             soup_cities = BeautifulSoup(req_cities, 'html.parser')
+            soup_2uroven = soup_cities.find_all('div', attrs={'class': 't2_470'})
+
+            soup_2table = soup_2uroven[0].find('table', attrs={'class': 'table'})
+            hlasy = soup_2table.find('td', attrs={'class': 'cislo', 'headers': 't1sa2 t1sb3'})
+            hlasy_list.append(hlasy.text.replace(u'\xa0', u''))
+            if i < 1:
+                for z in range(len(soup_2uroven)):
+                    strany = htmltable_to_list(soup_2uroven[z], class_sel='overflow_name')
+                    strany_list += strany
+                print(len(strany_list))
+
+                # for x, strana in enumerate(strany_list):
+                #     election_result.append({strana: strany_list[x]})
+            # print(len(election_result[x+8]))
+            # else:
+            #     print(f'Chyba v poctu stran ({len(strany_list)}) a hlasu ({len(hlasy_list)})!')
             soup_table = soup_cities.find('table', attrs={'class': 'table'})
-            # print(soup_table.td.attrs)
-            # cities_registered = htmltable_to_list(soup_table, class_sel='cislo', header_sel='sa2')
             cities_registered = soup_table.find('td', attrs={'class': 'cislo', 'headers': 'sa2'})
             cities_envelope = soup_table.find('td', attrs={'class': 'cislo', 'headers': 'sa3'})
             cities_valid = soup_table.find('td', attrs={'class': 'cislo', 'headers': 'sa6'})
+            parties_list = soup_table.find('td', attrs={'class': 'cislo', 'headers': 'sa6'})
             try:
                 registered_list.append(cities_registered.text.replace(u'\xa0', u''))
                 envelope_list.append(cities_envelope.text.replace(u'\xa0', u''))
                 valid_list.append(cities_valid.text.replace(u'\xa0', u''))
             except AttributeError:
                 print(f'Mesto {election_result[3]["city_name"][i]} ma problem!')
+        print(hlasy_list)
         election_result[5].update({"registered": registered_list})
         election_result[6].update({"envelope": envelope_list})
         election_result[7].update({"valid": valid_list})
-        print(election_result[7], '\n')
+        print(election_result, '\n')
+
+
