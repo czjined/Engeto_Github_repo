@@ -94,12 +94,6 @@ if __name__ == '__main__':
                     strany = htmltable_to_list(soup_2uroven[z], class_sel='overflow_name')
                     strany_list += strany
                 print(len(strany_list))
-
-                # for x, strana in enumerate(strany_list):
-                #     election_result.append({strana: strany_list[x]})
-            # print(len(election_result[x+8]))
-            # else:
-            #     print(f'Chyba v poctu stran ({len(strany_list)}) a hlasu ({len(hlasy_list)})!')
             soup_table = soup_cities.find('table', attrs={'class': 'table'})
             cities_registered = soup_table.find('td', attrs={'class': 'cislo', 'headers': 'sa2'})
             cities_envelope = soup_table.find('td', attrs={'class': 'cislo', 'headers': 'sa3'})
