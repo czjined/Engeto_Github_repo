@@ -30,7 +30,7 @@ def request_site(html_argument: str) -> str:
 
 def crt_rslt_structure() -> list:
     result_structure = list()
-    main_row = ['region', 'district', 'city_number', 'city_name', 'city_link', 'registered', 'envelope', 'valid']
+    main_row = ['region', 'district', 'city_number', 'city_name', 'registered', 'envelope', 'valid']
     for item in main_row:
         tmp_dict = dict()
         tmp_dict.setdefault(item, '')
@@ -48,6 +48,7 @@ def htmltable_to_list(soup, class_sel='', tag_sel='td', id_sel='', href_sel=Fals
     return result_list
 
 
+
 def script_stop(stop_text: str):
     print(stop_text)
     print('QUITTING..')
@@ -60,33 +61,64 @@ if __name__ == '__main__':
     if input_check(input_list):
         req_site = request_site(input_list[1])
         election_result = crt_rslt_structure()
+        running_check, attempts = False, 1
         soup_site = BeautifulSoup(req_site, 'html.parser')
-        selected_location = soup_site.find_all('h3')[:2]
-        election_result[0].update({"region": selected_location[0].string.split()[1] + ' kraj'})
-        election_result[1].update({"district": selected_location[1].string.split()[1]})
-        soup_table = soup_site.find('table', attrs={'class': 'table'})
-        cities_number = htmltable_to_list(soup_table, class_sel='cislo')
-        election_result[2].update({"city_number": cities_number})
-        cities_names = htmltable_to_list(soup_table, class_sel='overflow_name')
-        election_result[3].update({"city_name": cities_names})
-        cities_links = htmltable_to_list(soup_table, class_sel='cislo', href_sel=True)
-        election_result[4].update({"city_link": cities_links})
-        if len(election_result[2]) == len(election_result[3]) and len(election_result[2]) == len(election_result[4]):
-            print(election_result[2], '\n')
-            print(election_result[3], '\n')
-            print(election_result[4], '\n')
-        else:
-            print('Chyba scrappingu obci, ruzna delka listu!')
-        registered_list, envelope_list, valid_list = list(), list(), list()
+        # selected_location = soup_site.find_all('h3')[:2]
+        # election_result[0].update({"region": selected_location[0].string.split()[1] + ' kraj'})
+        # election_result[1].update({"district": selected_location[1].string.split()[1]})
+        while not running_check:
+            soup_table = soup_site.find('table', attrs={'class': 'table'})
+            cities_number = htmltable_to_list(soup_table, class_sel='cislo')
+            # election_result[2].update({"city_number": cities_number})
+            # cities_names = htmltable_to_list(soup_table, class_sel='overflow_name')
+            # election_result[3].update({"city_name": cities_names})
+            cities_links = htmltable_to_list(soup_table, class_sel='cislo', href_sel=True)
+            # election_result[4].update({"city_link": cities_links})
+            if len(cities_number) == len(cities_links):
+                print(f'City links and numbers got properly on {attempts}. attempt.')
+                running_check = True
+            elif attempts < 6:
+                print(f'Diference between number of city lists on {attempts} attempts.')
+                print('Trying to get the data once more...')
+                attempts += 1
+            else:
+                script_stop(f'Not able to get lists of city links and numbers after {attempts} attempts.')
+
+        election_result = [['region'], ['district'], ['city_name'], ['city_number']]
+        election_result += [['registered'], ['envelope'], ['valid']]
+
+        # registered_list, envelope_list, valid_list = list(), list(), list()
         strany, strany_list = list(), list()
         hlasy, hlasy_list = list(), list()
-        for i, odkaz in enumerate(election_result[4]['city_link']):
+        for i, odkaz in enumerate(cities_links):
             odkaz = 'https://volby.cz/pls/ps2017nss/' + odkaz
             req_cities = request_site(odkaz)
             soup_cities = BeautifulSoup(req_cities, 'html.parser')
-            soup_2uroven = soup_cities.find_all('div', attrs={'class': 't2_470'})
+            election_result[3].append(cities_number[i])
+            for a in range(3):
+                scrapped_text = soup_cities.findAll('h3')[a].string
+                scrapped_text = scrapped_text.split(':')[1].strip()
+                election_result[a].append(scrapped_text)
 
-            soup_2table = soup_2uroven[0].find('table', attrs={'class': 'table'})
+
+            soup_2uroven = soup_cities.find_all('table', attrs={'class': 'table'})
+
+            ReqHeaders = {'result_pos': [4, 5, 6], 'header': ['sa2', 'sa5', 'sa6']}
+            for row in soup_2uroven:
+                for b, result_position in enumerate(ReqHeaders['result_pos']):
+                    try:
+                        scrapped_text = row.find('td', attrs={'class': 'cislo', 'headers': ReqHeaders['header'][b]}).text
+
+                    except AttributeError:
+                        continue
+                    else:
+                        scrapped_text = scrapped_text.replace(u'\xa0', u'')
+                    print(scrapped_text)
+                    election_result[ReqHeaders['result_pos'][b]].append(scrapped_text)
+            print(election_result)
+            script_stop('debug')
+
+            soup_2table = soup_2uroven.find('table', attrs={'class': 'table'})
             hlasy = soup_2table.find('td', attrs={'class': 'cislo', 'headers': 't1sa2 t1sb3'})
             hlasy_list.append(hlasy.text.replace(u'\xa0', u''))
             if i < 1:
