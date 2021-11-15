@@ -118,9 +118,10 @@ if __name__ == '__main__':
 
 
             soup_2uroven = soup_cities.find_all('table', attrs={'class': 'table'})
-            print(soup_2uroven[1])
+
             ReqHeaders = {'result_pos': [4, 5, 6], 'header': ['sa2', 'sa5', 'sa6']}
             for row in soup_2uroven:
+                # print(row)
                 for b, result_position in enumerate(ReqHeaders['result_pos']):
                     try:
                         scrapped_text = row.find('td', attrs={'class': 'cislo', 'headers': ReqHeaders['header'][b]}).text
@@ -132,18 +133,23 @@ if __name__ == '__main__':
                         scrapped_text = scrapped_text.replace(u'\xa0', u'')
                     # print(scrapped_text)
                     election_result[ReqHeaders['result_pos'][b]].append(scrapped_text)
-                strany_soup = row.find_all('td', attrs={'class': 'overflow_name'})
-                for strana in strany_soup:
+
+
+            strany_tab = soup_cities.find_all('div', attrs={'class': 't2_470'})
+            # print(len(strany_soup))
+            for strana in strany_tab:
+                strany_soup = strana.find_all('td', attrs={'class': 'overflow_name'})
+                for polozka in strany_soup:
                     try:
-                        strana_text = strana.find('td', attrs={'headers': 't1sa1 t1sb2'}).text
+                        strany_list.append(polozka.text)
+                        # print(f'Strana_text = {strana_text}')
                     except AttributeError:
                         print('Attribute error, jedu dal...')
                         continue
-                    else:
-                        strana_text = scrapped_text.replace(u'\xa0', u'')
-                    election_result.append(strana_text)
+                    election_result.append(strany_list)
 
-            print(election_result, '\n')
+            print(strany_list, '\n')
+            print(f'Pocet sloupcu election_result je nyni: {len(election_result)}')
 
 
 
