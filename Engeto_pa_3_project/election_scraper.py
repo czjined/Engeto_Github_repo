@@ -47,6 +47,22 @@ def htmltable_to_list(soup, class_sel='', tag_sel='td', id_sel='', href_sel=Fals
             result_list.append(row.text.replace(u'\xa0', u''))
     return result_list
 
+def htmltable2_to_list(soup, inp_list: list, class_sel='cislo', tag_sel='td', head_sel='', href_sel=False) -> list:
+    # result_list = list()
+    for row in soup:
+        try:
+            scrapped_text = row.find(tag_sel, attrs={'class': class_sel, 'headers': head_sel}).text
+
+        except AttributeError:
+            print('Attribute error, pokracuji..')
+            continue
+        else:
+            scrapped_text = scrapped_text.replace(u'\xa0', u'')
+        print(scrapped_text)
+        inp_list.append(scrapped_text)
+        print(inp_list)
+    return inp_list
+
 
 
 def script_stop(stop_text: str):
@@ -102,7 +118,7 @@ if __name__ == '__main__':
 
 
             soup_2uroven = soup_cities.find_all('table', attrs={'class': 'table'})
-
+            print(soup_2uroven[1])
             ReqHeaders = {'result_pos': [4, 5, 6], 'header': ['sa2', 'sa5', 'sa6']}
             for row in soup_2uroven:
                 for b, result_position in enumerate(ReqHeaders['result_pos']):
@@ -110,37 +126,53 @@ if __name__ == '__main__':
                         scrapped_text = row.find('td', attrs={'class': 'cislo', 'headers': ReqHeaders['header'][b]}).text
 
                     except AttributeError:
+                        # print('Attribute error, jedu dal...')
                         continue
                     else:
                         scrapped_text = scrapped_text.replace(u'\xa0', u'')
-                    print(scrapped_text)
+                    # print(scrapped_text)
                     election_result[ReqHeaders['result_pos'][b]].append(scrapped_text)
-            print(election_result)
+                strany_soup = row.find_all('td', attrs={'class': 'overflow_name'})
+                for strana in strany_soup:
+                    try:
+                        strana_text = strana.find('td', attrs={'headers': 't1sa1 t1sb2'}).text
+                    except AttributeError:
+                        print('Attribute error, jedu dal...')
+                        continue
+                    else:
+                        strana_text = scrapped_text.replace(u'\xa0', u'')
+                    election_result.append(strana_text)
+
+            print(election_result, '\n')
+
+
+
+
+
+
             script_stop('debug')
 
-            soup_2table = soup_2uroven.find('table', attrs={'class': 'table'})
-            hlasy = soup_2table.find('td', attrs={'class': 'cislo', 'headers': 't1sa2 t1sb3'})
-            hlasy_list.append(hlasy.text.replace(u'\xa0', u''))
-            if i < 1:
-                for z in range(len(soup_2uroven)):
-                    strany = htmltable_to_list(soup_2uroven[z], class_sel='overflow_name')
-                    strany_list += strany
-                print(len(strany_list))
-            soup_table = soup_cities.find('table', attrs={'class': 'table'})
-            cities_registered = soup_table.find('td', attrs={'class': 'cislo', 'headers': 'sa2'})
-            cities_envelope = soup_table.find('td', attrs={'class': 'cislo', 'headers': 'sa3'})
-            cities_valid = soup_table.find('td', attrs={'class': 'cislo', 'headers': 'sa6'})
-            parties_list = soup_table.find('td', attrs={'class': 'cislo', 'headers': 'sa6'})
-            try:
-                registered_list.append(cities_registered.text.replace(u'\xa0', u''))
-                envelope_list.append(cities_envelope.text.replace(u'\xa0', u''))
-                valid_list.append(cities_valid.text.replace(u'\xa0', u''))
-            except AttributeError:
-                print(f'Mesto {election_result[3]["city_name"][i]} ma problem!')
-        print(hlasy_list)
-        election_result[5].update({"registered": registered_list})
-        election_result[6].update({"envelope": envelope_list})
-        election_result[7].update({"valid": valid_list})
-        print(election_result, '\n')
+            soup_2uroven = soup_cities.find_all('div', attrs={'class': 't2_470'})
+            for row in soup_2uroven:
+
+                soup_strany = row.find_all('td', attrs={'class': 'overflow_name','headers': 't1sa1 t1sb2'})
+                print(soup_strany)
+                for strana in soup_strany:
+            # election_result = htmltable2_to_list(row, election_result, head_sel= 't1sa1 t1sb2')
+                    print(strana.td)
+                    try:
+                        scrapped_text = strana.find('td', attrs={'headers': 't1sa1 t1sb2'}).text
+                    except AttributeError:
+                        # print('Attribute error, jedu dal...')
+                        continue
+                    else:
+                        election_result.append(scrapped_text)
+
+            print(election_result, '\n')
+
+            script_stop('debug')
+
+
+
 
 
