@@ -104,8 +104,7 @@ if __name__ == '__main__':
         election_result += [['registered'], ['envelope'], ['valid']]
 
         # registered_list, envelope_list, valid_list = list(), list(), list()
-        strany, strany_list = list(), list()
-        hlasy, hlasy_list = list(), list()
+        strany_list = list()
         for i, odkaz in enumerate(cities_links):
             odkaz = 'https://volby.cz/pls/ps2017nss/' + odkaz
             req_cities = request_site(odkaz)
@@ -136,47 +135,32 @@ if __name__ == '__main__':
 
 
             strany_tab = soup_cities.find_all('div', attrs={'class': 't2_470'})
-            # print(len(strany_soup))
-            for strana in strany_tab:
-                strany_soup = strana.find_all('td', attrs={'class': 'overflow_name'})
-                for polozka in strany_soup:
-                    try:
-                        strany_list.append(polozka.text)
-                        # print(f'Strana_text = {strana_text}')
-                    except AttributeError:
-                        print('Attribute error, jedu dal...')
-                        continue
-                    election_result.append(strany_list)
+            hlasy_list = list()
+            for x, strana in enumerate(strany_tab):
+                if i == 0:
+                    strany_soup = strana.find_all('td', attrs={'class': 'overflow_name'})
+                    for polozka in strany_soup:
+                        try:
+                            strany_list.append([polozka.text,])
+                        except AttributeError:
+                            print('Attribute error has occurred during parties table scrapping, continue with next...')
+                            continue
+                        election_result.append(strany_list)
+                    if x == len(strany_tab) - 1:
+                        print(f'Runtime check: {len(strany_list)} parties has been added')
+                vote_header  = f't{x+1}sa2 t{x+1}sb3'
+                print(f'Hledam hlasy pro header {vote_header}')
+                votes_soup = strana.find_all('td', attrs={'class': 'cislo', 'headers': vote_header})
+                for polozka in votes_soup:
+                    hlasy_list.append(polozka.text.replace(u'\xa0', u''))
+            if len(strany_list[0]) == len(hlasy_list):
+                for j in range(len(strany_list)):
+                    election_result[j+7].append(hlasy_list[j])
+            else:
+                print(f'Chyba, ruzne delky listu stran ({len(strany_list)}) a hlasu ({len(hlasy_list)})!')
 
-            print(strany_list, '\n')
-            print(f'Pocet sloupcu election_result je nyni: {len(election_result)}')
 
-
-
-
-
-
-            script_stop('debug')
-
-            soup_2uroven = soup_cities.find_all('div', attrs={'class': 't2_470'})
-            for row in soup_2uroven:
-
-                soup_strany = row.find_all('td', attrs={'class': 'overflow_name','headers': 't1sa1 t1sb2'})
-                print(soup_strany)
-                for strana in soup_strany:
-            # election_result = htmltable2_to_list(row, election_result, head_sel= 't1sa1 t1sb2')
-                    print(strana.td)
-                    try:
-                        scrapped_text = strana.find('td', attrs={'headers': 't1sa1 t1sb2'}).text
-                    except AttributeError:
-                        # print('Attribute error, jedu dal...')
-                        continue
-                    else:
-                        election_result.append(scrapped_text)
-
-            print(election_result, '\n')
-
-            script_stop('debug')
+    print(election_result[2])
 
 
 
