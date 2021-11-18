@@ -40,11 +40,12 @@ def crt_rslt_structure() -> list:
 
 def htmltable_to_list(soup, class_sel='', tag_sel='td', id_sel='', href_sel=False) -> list:
     result_list = list()
-    for row in soup.findAll(tag_sel, attrs={'class': class_sel,'id': id_sel}):
-        if href_sel:
-            result_list.append(row.a['href'])
-        else:
-            result_list.append(row.text.replace(u'\xa0', u''))
+    for table in soup:
+        for row in table.findAll(tag_sel, attrs={'class': class_sel,'id': id_sel}):
+            if href_sel:
+                result_list.append(row.a['href'])
+            else:
+                result_list.append(row.text.replace(u'\xa0', u''))
     return result_list
 
 def htmltable2_to_list(soup, inp_list: list, class_sel='cislo', tag_sel='td', head_sel='', href_sel=False) -> list:
@@ -79,19 +80,16 @@ if __name__ == '__main__':
         election_result = crt_rslt_structure()
         running_check, attempts = False, 1
         soup_site = BeautifulSoup(req_site, 'html.parser')
-        # selected_location = soup_site.find_all('h3')[:2]
-        # election_result[0].update({"region": selected_location[0].string.split()[1] + ' kraj'})
-        # election_result[1].update({"district": selected_location[1].string.split()[1]})
+        selected_location = soup_site.find_all('h3')[:2]
+        kraj = selected_location[0].string.split()[1] + ' kraj'
+        okres = selected_location[1].string.split()[1]
         while not running_check:
-            soup_table = soup_site.find('table', attrs={'class': 'table'})
+            soup_table = soup_site.find_all('table', attrs={'class': 'table'})
             cities_number = htmltable_to_list(soup_table, class_sel='cislo')
-            # election_result[2].update({"city_number": cities_number})
-            # cities_names = htmltable_to_list(soup_table, class_sel='overflow_name')
-            # election_result[3].update({"city_name": cities_names})
+            cities_names = htmltable_to_list(soup_table, class_sel='overflow_name')
             cities_links = htmltable_to_list(soup_table, class_sel='cislo', href_sel=True)
-            # election_result[4].update({"city_link": cities_links})
-            if len(cities_number) == len(cities_links):
-                print(f'City links and numbers got properly on {attempts}. attempt.')
+            if len(cities_number) == len(cities_links) and len(cities_number) == len(cities_names):
+                print(f'City links and numbers ({len(cities_links)}) got properly on {attempts}. attempt.')
                 running_check = True
             elif attempts < 6:
                 print(f'Diference between number of city lists on {attempts} attempts.')
@@ -100,8 +98,14 @@ if __name__ == '__main__':
             else:
                 script_stop(f'Not able to get lists of city links and numbers after {attempts} attempts.')
 
-        election_result = [['region'], ['district'], ['city_name'], ['city_number']]
-        election_result += [['registered'], ['envelope'], ['valid']]
+        election_result = {'hlavicka':['region', 'district', 'city_number', 'city_name']}
+        election_result['hlavicka'] += ['registered', 'envelope', 'valid']
+        for j in range(len(cities_links)):
+            radek = {f'radek{j}':[kraj, okres, cities_number[j], cities_names[j]]}
+            election_result.update(radek)
+
+        print(election_result[f'radek{len(cities_links)-1}'])
+        script_stop('Debug stop')
 
         # registered_list, envelope_list, valid_list = list(), list(), list()
         strany_list = list()
@@ -161,7 +165,6 @@ if __name__ == '__main__':
 
 
     print(election_result[2])
-
 
 
 
