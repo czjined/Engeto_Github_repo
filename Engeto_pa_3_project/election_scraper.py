@@ -2,7 +2,6 @@ import requests
 from requests.exceptions import HTTPError
 from bs4 import BeautifulSoup
 import sys
-# import unicodedata
 
 
 def input_check(list_for_check: list) -> bool:
@@ -38,32 +37,15 @@ def crt_rslt_structure() -> list:
     return result_structure
 
 
-def htmltable_to_list(soup, class_sel='', tag_sel='td', id_sel='', href_sel=False) -> list:
+def htmltable_to_list(soup, class_sel='', tag_sel='td', href_sel=False) -> list:
     result_list = list()
     for table in soup:
-        for row in table.findAll(tag_sel, attrs={'class': class_sel,'id': id_sel}):
+        for radek in table.find_all(tag_sel, attrs={'class': class_sel}):
             if href_sel:
-                result_list.append(row.a['href'])
+                result_list.append(radek.a['href'])
             else:
-                result_list.append(row.text.replace(u'\xa0', u''))
+                result_list.append(radek.text.replace(u'\xa0', u''))
     return result_list
-
-def htmltable2_to_list(soup, inp_list: list, class_sel='cislo', tag_sel='td', head_sel='', href_sel=False) -> list:
-    # result_list = list()
-    for row in soup:
-        try:
-            scrapped_text = row.find(tag_sel, attrs={'class': class_sel, 'headers': head_sel}).text
-
-        except AttributeError:
-            print('Attribute error, pokracuji..')
-            continue
-        else:
-            scrapped_text = scrapped_text.replace(u'\xa0', u'')
-        print(scrapped_text)
-        inp_list.append(scrapped_text)
-        print(inp_list)
-    return inp_list
-
 
 
 def script_stop(stop_text: str):
@@ -97,74 +79,47 @@ if __name__ == '__main__':
                 attempts += 1
             else:
                 script_stop(f'Not able to get lists of city links and numbers after {attempts} attempts.')
-
         election_result = {'hlavicka':['region', 'district', 'city_number', 'city_name']}
         election_result['hlavicka'] += ['registered', 'envelope', 'valid']
         for j in range(len(cities_links)):
             radek = {f'radek{j}':[kraj, okres, cities_number[j], cities_names[j]]}
             election_result.update(radek)
-
-        print(election_result[f'radek{len(cities_links)-1}'])
-        script_stop('Debug stop')
-
-        # registered_list, envelope_list, valid_list = list(), list(), list()
         strany_list = list()
         for i, odkaz in enumerate(cities_links):
             odkaz = 'https://volby.cz/pls/ps2017nss/' + odkaz
             req_cities = request_site(odkaz)
             soup_cities = BeautifulSoup(req_cities, 'html.parser')
-            election_result[3].append(cities_number[i])
-            for a in range(3):
-                scrapped_text = soup_cities.findAll('h3')[a].string
-                scrapped_text = scrapped_text.split(':')[1].strip()
-                election_result[a].append(scrapped_text)
-
-
-            soup_2uroven = soup_cities.find_all('table', attrs={'class': 'table'})
-
-            ReqHeaders = {'result_pos': [4, 5, 6], 'header': ['sa2', 'sa5', 'sa6']}
+            hlasy_list = list()
+            soup_2uroven = soup_cities.find_all('table', attrs={'class': 'table', 'id':'ps311_t1'})
+            ReqHeaders = ['sa2', 'sa5', 'sa6']
             for row in soup_2uroven:
-                # print(row)
-                for b, result_position in enumerate(ReqHeaders['result_pos']):
+                for ReqHeader in ReqHeaders:
                     try:
-                        scrapped_text = row.find('td', attrs={'class': 'cislo', 'headers': ReqHeaders['header'][b]}).text
-
+                        scrapped_text = row.find('td', attrs={'class': 'cislo', 'headers': ReqHeader})
+                        scrapped_text = scrapped_text.text
                     except AttributeError:
-                        # print('Attribute error, jedu dal...')
+                        print('Attribute error, jedu dal...')
                         continue
                     else:
                         scrapped_text = scrapped_text.replace(u'\xa0', u'')
-                    # print(scrapped_text)
-                    election_result[ReqHeaders['result_pos'][b]].append(scrapped_text)
-
-
+                    election_result[f'radek{i}'].append(scrapped_text)
             strany_tab = soup_cities.find_all('div', attrs={'class': 't2_470'})
-            hlasy_list = list()
             for x, strana in enumerate(strany_tab):
                 if i == 0:
-                    strany_soup = strana.find_all('td', attrs={'class': 'overflow_name'})
-                    for polozka in strany_soup:
-                        try:
-                            strany_list.append([polozka.text,])
-                        except AttributeError:
-                            print('Attribute error has occurred during parties table scrapping, continue with next...')
-                            continue
-                        election_result.append(strany_list)
-                    if x == len(strany_tab) - 1:
-                        print(f'Runtime check: {len(strany_list)} parties has been added')
+                    strany_list = htmltable_to_list(strany_tab, class_sel='overflow_name')
+                    election_result['hlavicka'] += strany_list
                 vote_header  = f't{x+1}sa2 t{x+1}sb3'
-                print(f'Hledam hlasy pro header {vote_header}')
                 votes_soup = strana.find_all('td', attrs={'class': 'cislo', 'headers': vote_header})
                 for polozka in votes_soup:
                     hlasy_list.append(polozka.text.replace(u'\xa0', u''))
-            if len(strany_list[0]) == len(hlasy_list):
-                for j in range(len(strany_list)):
-                    election_result[j+7].append(hlasy_list[j])
+            if len(strany_list) == len(hlasy_list):
+                election_result[f'radek{i}'] += hlasy_list
             else:
                 print(f'Chyba, ruzne delky listu stran ({len(strany_list)}) a hlasu ({len(hlasy_list)})!')
+                script_stop('Debug stop')
+        print('Web Scraping successfully finished!')
+        # print(election_result['radek2'])
 
-
-    print(election_result[2])
 
 
 
