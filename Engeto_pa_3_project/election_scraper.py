@@ -40,7 +40,8 @@ def crt_rslt_structure() -> list:
 def htmltable_to_list(soup, class_sel='', tag_sel='td', href_sel=False) -> list:
     result_list = list()
     for table in soup:
-        for radek in table.find_all(tag_sel, attrs={'class': class_sel}):
+        tmp_soup = table.find_all(tag_sel, attrs={'class': class_sel})
+        for radek in tmp_soup:
             if href_sel:
                 result_list.append(radek.a['href'])
             else:
@@ -61,6 +62,7 @@ if __name__ == '__main__':
         req_site = request_site(input_list[1])
         election_result = crt_rslt_structure()
         running_check, attempts = False, 1
+        cities_number, cities_names, cities_links = list(), list(), list()
         soup_site = BeautifulSoup(req_site, 'html.parser')
         selected_location = soup_site.find_all('h3')[:2]
         kraj = selected_location[0].string.split()[1] + ' kraj'
@@ -79,10 +81,10 @@ if __name__ == '__main__':
                 attempts += 1
             else:
                 script_stop(f'Not able to get lists of city links and numbers after {attempts} attempts.')
-        election_result = {'hlavicka':['region', 'district', 'city_number', 'city_name']}
+        election_result = {'hlavicka': ['region', 'district', 'city_number', 'city_name']}
         election_result['hlavicka'] += ['registered', 'envelope', 'valid']
         for j in range(len(cities_links)):
-            radek = {f'radek{j}':[kraj, okres, cities_number[j], cities_names[j]]}
+            radek = {f'radek{j}': [kraj, okres, cities_number[j], cities_names[j]]}
             election_result.update(radek)
         strany_list = list()
         for i, odkaz in enumerate(cities_links):
@@ -90,7 +92,7 @@ if __name__ == '__main__':
             req_cities = request_site(odkaz)
             soup_cities = BeautifulSoup(req_cities, 'html.parser')
             hlasy_list = list()
-            soup_2uroven = soup_cities.find_all('table', attrs={'class': 'table', 'id':'ps311_t1'})
+            soup_2uroven = soup_cities.find_all('table', attrs={'class': 'table', 'id': 'ps311_t1'})
             ReqHeaders = ['sa2', 'sa5', 'sa6']
             for row in soup_2uroven:
                 for ReqHeader in ReqHeaders:
@@ -108,7 +110,7 @@ if __name__ == '__main__':
                 if i == 0:
                     strany_list = htmltable_to_list(strany_tab, class_sel='overflow_name')
                     election_result['hlavicka'] += strany_list
-                vote_header  = f't{x+1}sa2 t{x+1}sb3'
+                vote_header = f't{x+1}sa2 t{x+1}sb3'
                 votes_soup = strana.find_all('td', attrs={'class': 'cislo', 'headers': vote_header})
                 for polozka in votes_soup:
                     hlasy_list.append(polozka.text.replace(u'\xa0', u''))
@@ -119,8 +121,3 @@ if __name__ == '__main__':
                 script_stop('Debug stop')
         print('Web Scraping successfully finished!')
         # print(election_result['radek2'])
-
-
-
-
-
