@@ -2,6 +2,7 @@ import requests
 from requests.exceptions import HTTPError
 from bs4 import BeautifulSoup
 import sys
+import csv
 
 
 def input_check(list_for_check: list) -> bool:
@@ -41,11 +42,11 @@ def htmltable_to_list(soup, class_sel='', tag_sel='td', href_sel=False) -> list:
     result_list = list()
     for table in soup:
         tmp_soup = table.find_all(tag_sel, attrs={'class': class_sel})
-        for radek in tmp_soup:
+        for row in tmp_soup:
             if href_sel:
-                result_list.append(radek.a['href'])
+                result_list.append(row.a['href'])
             else:
-                result_list.append(radek.text.replace(u'\xa0', u''))
+                result_list.append(row.text.replace(u'\xa0', u''))
     return result_list
 
 
@@ -56,7 +57,8 @@ def script_stop(stop_text: str):
 
 
 if __name__ == '__main__':
-    input_list = ['SYS', 'https://volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=12&xnumnuts=7103', 'vysledky_prostejov.csv']
+    input_list = ['SYS', 'https://volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=12&xnumnuts=7103']
+    input_list += ['vysledky_prostejov.csv']
     # input_list = sys.argv()
     if input_check(input_list):
         req_site = request_site(input_list[1])
@@ -117,7 +119,10 @@ if __name__ == '__main__':
             if len(strany_list) == len(hlasy_list):
                 election_result[f'radek{i}'] += hlasy_list
             else:
-                print(f'Chyba, ruzne delky listu stran ({len(strany_list)}) a hlasu ({len(hlasy_list)})!')
-                script_stop('Debug stop')
+                script_stop('Number of parties does not equal to votes.')
         print('Web Scraping successfully finished!')
-        # print(election_result['radek2'])
+        with open(input_list[2], mode='w', newline='') as csv_file:
+            voting_writer = csv.writer(csv_file, delimiter=',')
+            voting_writer.writerow(election_result['hlavicka'])
+            for j in range(len(cities_links)):
+                voting_writer.writerow(election_result[f'radek{j}'])
