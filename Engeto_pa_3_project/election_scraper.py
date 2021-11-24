@@ -2,16 +2,38 @@ import requests
 from requests.exceptions import HTTPError
 from bs4 import BeautifulSoup
 import sys
+from time import time
 import csv
 
 
 def input_check(list_for_check: list) -> bool:
-    if len(list_for_check) != 3:
+    chapter_separator(2)
+    print('Checking your input arguments.')
+    if len(list_for_check) == 3:
+        pageform = 'https://volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=12&xnumnuts=7103'.split('=')
+        inputpage = list_for_check[1].split('=')
+        if pageform[0] == inputpage[0] and pageform[1][3:] == inputpage[1][3:]:
+            outfile = list_for_check[-1].lower()
+            if outfile[-3:] == 'csv':
+                print('Input arguments are OK')
+                chapter_separator(1)
+                return True
+            else:
+                text_for_stop = 'Output file must be CSV format!'
+                script_stop(text_for_stop)
+        else:
+            text_for_stop = 'Wrong web address!'
+            script_stop(text_for_stop)
+    else:
         text_for_stop = 'Three arguments expecting!'
         script_stop(text_for_stop)
-    else:
-        print('Input arguments are OK')
-        return True
+
+
+def chapter_separator(width: int):
+    if width == 1:
+        print('-'*60)
+    elif width == 2:
+        print('=' * 60)
 
 
 def request_site(html_argument: str) -> str:
@@ -57,10 +79,12 @@ def script_stop(stop_text: str):
 
 
 if __name__ == '__main__':
-    input_list = ['SYS', 'https://volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=12&xnumnuts=7103']
-    input_list += ['vysledky_prostejov.csv']
+    input_list = ['SYS', 'https://volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=8&xnumnuts=5205']
+    input_list += ['vysledky_trutnov.CSV']
     # input_list = sys.argv()
     if input_check(input_list):
+        start = time()
+        print(f'Requesting {input_list[1]}')
         req_site = request_site(input_list[1])
         election_result = crt_rslt_structure()
         running_check, attempts = False, 1
@@ -75,7 +99,9 @@ if __name__ == '__main__':
             cities_names = htmltable_to_list(soup_table, class_sel='overflow_name')
             cities_links = htmltable_to_list(soup_table, class_sel='cislo', href_sel=True)
             if len(cities_number) == len(cities_links) and len(cities_number) == len(cities_names):
-                print(f'City links and numbers ({len(cities_links)}) got properly on {attempts}. attempt.')
+                print(f'{len(cities_links)} city links and numbers got properly on {attempts}. attempt.')
+                print()
+                print(f'Collecting detail voting information for {okres} from the web...')
                 running_check = True
             elif attempts < 6:
                 print(f'Diference between number of city lists on {attempts} attempts.')
@@ -102,7 +128,7 @@ if __name__ == '__main__':
                         scrapped_text = row.find('td', attrs={'class': 'cislo', 'headers': ReqHeader})
                         scrapped_text = scrapped_text.text
                     except AttributeError:
-                        print('Attribute error, jedu dal...')
+                        print('Attribute error, continue...')
                         continue
                     else:
                         scrapped_text = scrapped_text.replace(u'\xa0', u'')
@@ -120,9 +146,18 @@ if __name__ == '__main__':
                 election_result[f'radek{i}'] += hlasy_list
             else:
                 script_stop('Number of parties does not equal to votes.')
-        print('Web Scraping successfully finished!')
-        with open(input_list[2], mode='w', newline='') as csv_file:
+        work_time = round(time() - start)
+        print(f'Web Scraping successfully finished in {work_time} seconds')
+        chapter_separator(1)
+        with open(input_list[2].lower(), mode='w', newline='') as csv_file:
+            print(f'Creating {input_list[2].lower()} file...')
             voting_writer = csv.writer(csv_file, delimiter=',')
-            voting_writer.writerow(election_result['hlavicka'])
-            for j in range(len(cities_links)):
-                voting_writer.writerow(election_result[f'radek{j}'])
+            try:
+                voting_writer.writerow(election_result['hlavicka'])
+                for j in range(len(cities_links)):
+                    voting_writer.writerow(election_result[f'radek{j}'])
+            except ReferenceError:
+                script_stop('Error writing CSV file!')
+            else:
+                print('Program Election Scraper successfully finished.')
+                chapter_separator(2)
