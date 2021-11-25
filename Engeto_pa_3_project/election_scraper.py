@@ -9,9 +9,9 @@ import csv
 def input_check(list_for_check: list) -> bool:
     chapter_separator(2)
     print('Checking your input arguments.')
-    if len(list_for_check) == 3:
+    if len(list_for_check) == 2:
         pageform = 'https://volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=12&xnumnuts=7103'.split('=')
-        inputpage = list_for_check[1].split('=')
+        inputpage = list_for_check[0].split('=')
         if pageform[0] == inputpage[0] and pageform[1][3:] == inputpage[1][3:]:
             outfile = list_for_check[-1].lower()
             if outfile[-3:] == 'csv':
@@ -25,15 +25,15 @@ def input_check(list_for_check: list) -> bool:
             text_for_stop = 'Wrong web address!'
             script_stop(text_for_stop)
     else:
-        text_for_stop = 'Three arguments expecting!'
+        text_for_stop = 'Two arguments expecting!'
         script_stop(text_for_stop)
 
 
 def chapter_separator(width: int):
     if width == 1:
-        print('-'*60)
+        print('-'*80)
     elif width == 2:
-        print('=' * 60)
+        print('=' * 80)
 
 
 def request_site(html_argument: str) -> str:
@@ -79,13 +79,13 @@ def script_stop(stop_text: str):
 
 
 if __name__ == '__main__':
-    input_list = ['SYS', 'https://volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=8&xnumnuts=5205']
-    input_list += ['vysledky_trutnov.CSV']
-    # input_list = sys.argv()
+    # input_list = ['https://volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=8&xnumnuts=5205']
+    # input_list += ['vysledky_trutnov.CSV']
+    input_list = sys.argv[1:]
     if input_check(input_list):
         start = time()
-        print(f'Requesting {input_list[1]}')
-        req_site = request_site(input_list[1])
+        print(f'Requesting {input_list[0]}')
+        req_site = request_site(input_list[0])
         election_result = crt_rslt_structure()
         running_check, attempts = False, 1
         cities_number, cities_names, cities_links = list(), list(), list()
@@ -149,8 +149,8 @@ if __name__ == '__main__':
         work_time = round(time() - start)
         print(f'Web Scraping successfully finished in {work_time} seconds')
         chapter_separator(1)
-        with open(input_list[2].lower(), mode='w', newline='') as csv_file:
-            print(f'Creating {input_list[2].lower()} file...')
+        with open(input_list[1].lower(), mode='w', newline='') as csv_file:
+            print(f'Creating {input_list[1].lower()} file...')
             voting_writer = csv.writer(csv_file, delimiter=',')
             try:
                 voting_writer.writerow(election_result['hlavicka'])
